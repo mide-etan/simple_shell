@@ -13,7 +13,7 @@
  * Return: NULL terminated array of strings
  */
 
-char **getav(char line[])
+char **getav(char *line)
 {
 	char **av = NULL, cur;
 	unsigned int ind = 0, ac = 1;
@@ -31,6 +31,7 @@ char **getav(char line[])
 		if (av == NULL)
 		{
 			free(av);
+			free(line);
 			perror("./simple_shell");
 			exit(EXIT_FAILURE);
 		}
@@ -76,7 +77,6 @@ int main(int argc, char **argv, char **envp)
 				write(STDOUT_FILENO, "\n", 1);
 			if (path != NULL)
 			{
-				printf("path is not null\n");
 				free(path);
 			}
 			exit(EXIT_SUCCESS);
@@ -88,6 +88,7 @@ int main(int argc, char **argv, char **envp)
 			if (cpid == -1)
 			{
 				perror(argv[0]);
+				free(av);
 				exit(EXIT_FAILURE);
 			}
 			if (cpid == 0)
@@ -97,7 +98,6 @@ int main(int argc, char **argv, char **envp)
 			} else
 			{
 				wait(&status);
-				free(path);
 				free(av);
 			}
 		}
