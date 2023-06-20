@@ -73,7 +73,8 @@ int main(int argc, char **argv, char **envp)
 		if (num_chars == -1)
 		{
 			if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, "\n", 1);
+				write(STDOUT_FILENO, "\n", 1);
+			free(path);
 			exit(EXIT_SUCCESS);
 		}
 		av = getav(path);
@@ -93,6 +94,7 @@ int main(int argc, char **argv, char **envp)
 			{
 				wait(&status);
 				free(path);
+				free(av);
 			}
 		}
 	}
