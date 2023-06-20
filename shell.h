@@ -11,5 +11,7 @@
 #include <signal.h>
 
 char **getav(char line[]);
+int execute(char *name, char **av, char **envp);
+char **prompt();
 
 #endif

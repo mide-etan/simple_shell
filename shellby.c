@@ -23,7 +23,6 @@ char **getav(char *line)
 		if (cur == ' ')
 			ac++;
 	}
-
 	line = strtok(line, "\n");
 	if (line)
 	{
@@ -55,6 +54,68 @@ char **getav(char *line)
 
 
 /**
+ * prompt - prompt for input from terminal
+ *
+ * Return: pointer to arguments from terminal
+ */
+
+char **prompt()
+{
+	char **av, *lineptr = NULL;
+	size_t n = 0;
+	ssize_t num_chars;
+
+	if (isatty(STDIN_FILENO))
+		write(STDOUT_FILENO, ":) ", 3);
+	num_chars = getline(&lineptr, &n, stdin);
+	if (num_chars == -1)
+	{
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, "\n", 1);
+		if (lineptr != NULL)
+			free(lineptr);
+		exit(EXIT_SUCCESS);
+	}
+	av = getav(lineptr);
+	free(lineptr);
+	return (av);
+}
+
+
+/**
+ * execute - executes a program via the calling process
+ *
+ * @name: name of process
+ * @av: arguments vector
+ * @envp: environment variables vector
+ *
+ * Return: 0 if successful
+ */
+
+int execute(char *name, char **av, char **envp)
+{
+	pid_t child_pid;
+	int wstatus;
+
+	child_pid = fork();
+	if (child_pid == -1)
+	{
+		perror(name);
+		free(av);
+		exit(EXIT_FAILURE);
+	}
+	if (child_pid == 0)
+	{
+		execve(av[0], av, envp);
+		perror(av[0]);
+	} else
+		wait(&wstatus);
+
+	return (0);
+}
+
+
+/**
  * main - entry point for shellby
  *
  * @argc: number of args
@@ -66,52 +127,25 @@ char **getav(char *line)
 
 int main(int argc, char **argv, char **envp)
 {
-	char **av, *path = NULL;
-	size_t n = 0;
-	ssize_t num_chars;
-	int status;
-	pid_t cpid;
+	char **av;
 
-	if (argc > 1)
+	if (argc == 1)
 	{
-		for (status = 0; argv[status] != NULL; status++)
-			printf("argv[%d]: %s\n", status, argv[status]);
-	}
-	while (1)
-	{
-		if (isatty(STDIN_FILENO))
-			write(STDOUT_FILENO, ":) ", 3);
-		num_chars = getline(&path, &n, stdin);
-		if (num_chars == -1)
+		while (1)
 		{
-			if (isatty(STDIN_FILENO))
-				write(STDOUT_FILENO, "\n", 1);
-			if (path != NULL)
+			av = prompt(argv);
+			if (av)
 			{
-				free(path);
-			}
-			exit(EXIT_SUCCESS);
-		}
-		av = getav(path);
-		if (av)
-		{
-			cpid = fork();
-			if (cpid == -1)
-			{
-				perror(argv[0]);
-				free(av);
-				exit(EXIT_FAILURE);
-			}
-			if (cpid == 0)
-			{
-				execve(av[0], av, envp);
-				perror(av[0]);
-			} else
-			{
-				wait(&status);
+				execute(argv[0], av, envp);
 				free(av);
 			}
 		}
 	}
+	else
+	{
+		av = argv + 1;
+		execute(argv[0], av, envp);
+	}
+
 	return (0);
 }
