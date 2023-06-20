@@ -74,7 +74,11 @@ int main(int argc, char **argv, char **envp)
 		{
 			if (isatty(STDIN_FILENO))
 				write(STDOUT_FILENO, "\n", 1);
-			free(path);
+			if (path != NULL)
+			{
+				printf("path is not null\n");
+				free(path);
+			}
 			exit(EXIT_SUCCESS);
 		}
 		av = getav(path);
