@@ -36,7 +36,14 @@ char **getav(char *line)
 			exit(EXIT_FAILURE);
 		}
 		for (ind = 0; !(ac < ind); ind++, line = NULL)
+		{
 			av[ind] = strtok(line, " ");
+			if (ind < ac && av[ind] == NULL)
+			{
+				free(av);
+				return (NULL);
+			}
+		}
 	}
 
 	return (av);
