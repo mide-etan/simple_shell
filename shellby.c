@@ -60,13 +60,19 @@ int main(int argc, char **argv, char **envp)
 	int status;
 	pid_t cpid;
 
-	(void) argc;
+	if (argc > 1)
+	{
+		for (status = 0; argv[status] != NULL; status++)
+			printf("argv[%d]: %s\n", status, argv[status]);
+	}
 	while (1)
 	{
-		write(STDOUT_FILENO, ":) ", 3);
+		if (isatty(STDIN_FILENO))
+			write(STDOUT_FILENO, ":) ", 3);
 		num_chars = getline(&path, &n, stdin);
 		if (num_chars == -1)
 		{
+			if (isatty(STDIN_FILENO))
 			write(STDOUT_FILENO, "\n", 1);
 			exit(EXIT_SUCCESS);
 		}
