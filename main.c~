@@ -1,0 +1,95 @@
+/*
+ * File: main.c
+ * Auth: Olamide Aworetan
+ *       Barnabas Tserga
+ */
+
+#include "shell.h"
+
+/**
+ * parse_line - parses line gotten from getline
+ * @line: string gotten from command line
+ *
+ * Return: NULL terminated array of strings
+ */
+
+char **parse_line(char *line, int *signal)
+{
+	char **av = NULL, cur, *fdelim = "\n";
+	unsigned int ind = 0, ac = 0;
+
+	for (cur = line[ind], cur != NULL; ind++)
+	{
+		if (cur == ' ')
+			ac++;
+		if (cur == 4 && ind == 0)
+		{
+			*signal = SIGINT;
+			break;
+		}
+		else if (cur == 4)
+			fdelim = cur;
+	}
+
+	line = strtok(line, fdelim);
+	if (line)
+	{
+		ac++;
+		av = malloc(sizeof(char *) * (ac + 1));
+		if (av == NULL)
+		{
+			perror("./simple_shell");
+			exit(EXIT_FAILURE);
+		}
+		for (ind = 0; ind <  ac; ind++)
+			ac[ind] = strtok(NULL, " ");
+	}
+
+	return (av);
+}
+
+
+/**
+ * main - entry point for shellby
+ *
+ * Return: Int
+ */
+
+int main(void)
+{
+	extern char **environ;
+	char **av, **envp = environ, *path = NULL;
+	size_t n = 0;
+	int status, loop = 1, signal = 0;
+	pid_t cpid, ppid;
+
+	ppid = getpid();
+	while (loop == 1)
+	{
+		if ((cpid = fork()) == -1)
+		{
+			perror("fork");
+			exit(EXIT_FAILURE);
+		}
+		if (cpid == 0)
+		{
+			write(STDOUT_FILENO, "#cisfun$ ", 9);
+			getline(&path, &n, stdin);
+			av = parse_line(path, &signal);
+			if (signal == SIGINT)
+				kill(ppid, signal);
+			if (av)
+			{
+				execve(av[0], av, envp);
+				perror(av[0]);
+			}
+		} else
+		{
+			wait(&status);
+			if (WIFSIGNALED(status))
+				printf("%d\n", WTERMSIG(status));
+		}
+	}
+	/* write(STDOUT_FILENO, "\n", 1);*/
+	return (0);
+}

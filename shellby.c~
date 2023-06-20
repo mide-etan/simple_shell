@@ -1,0 +1,110 @@
+/*
+ * File: main.c
+ * Auth: Olamide Aworetan
+ *       Barnabas Tserga
+ */
+
+#include "shell.h"
+
+/**
+ * getav - get av from input string
+ * @line: string gotten from command line
+ *
+ * Return: NULL terminated array of strings
+ */
+
+char **getav(char line[])
+{
+	char **av = NULL, cur;
+	unsigned int ind = 0, ac = 1;
+
+	for (cur = line[ind]; cur != '\0'; ind++, cur = line[ind])
+	{
+		if (cur == ' ')
+			ac++;
+	}
+
+	line = strtok(line, "\n");
+	if (line)
+	{
+		av = malloc(sizeof(char *) * (ac + 1));
+		if (av == NULL)
+		{
+			free(av);
+			perror("./simple_shell");
+			exit(EXIT_FAILURE);
+		}
+		for (ind = 0; !(ac < ind); ind++, line = NULL)
+		{
+			av[ind] = strtok(line, " ");
+			printf("av[%d]: %s\n", ind, av[ind]);
+			printf("line: %s\n", line);
+		}
+	}
+	if (av != NULL)
+	{
+		for (ind = 0; av[ind] != 0; ind++)
+			printf("%s\n", av[ind]);
+	}
+
+	return (av);
+}
+
+
+/**
+ * main - entry point for shellby
+ *
+ * @argc: number of args
+ * @argv: arguments vector
+ * @envp: environment variables vector
+ *
+ * Return: Int
+ */
+
+int main(int argc, char **argv, char **envp)
+{
+	char **av, *path = NULL;
+	size_t n = 0;
+	ssize_t num_chars;
+	int status;
+	pid_t cpid;
+
+	(void) argc;
+	while (1)
+	{
+		write(STDOUT_FILENO, ":) ", 3);
+		num_chars = getline(&path, &n, stdin);
+		printf("Get done\n");
+		if (num_chars == -1)
+		{
+			write(STDOUT_FILENO, "\n", 1);
+			free(path);
+			exit(EXIT_SUCCESS);
+		}
+		printf("eof check done\n");
+		av = getav(path);
+		if (av)
+		{
+			for (status = 0; av[status] != 0; status++)
+				printf("av[%d]: %s\n", status, av[status]);
+			printf("getav done\n");
+			printf("path free\n");
+			cpid = fork();
+			if (cpid == -1)
+			{
+				perror(argv[0]);
+				exit(EXIT_FAILURE);
+			}
+			if (cpid == 0)
+			{
+				execve(av[0], av, envp);
+				perror(av[0]);
+			} else
+			{
+				wait(&status);
+				free(path);
+			}
+		}
+	}
+	return (0);
+}
