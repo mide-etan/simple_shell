@@ -38,10 +38,15 @@ char **getav(char *line)
 		for (ind = 0; !(ac < ind); ind++, line = NULL)
 		{
 			av[ind] = strtok(line, " ");
-			if (ind < ac && av[ind] == NULL)
+			printf("av[%d]: %s\n", ind, av[ind]);
+			if (av[ind] == NULL)
 			{
-				free(av);
-				return (NULL);
+				if (ind == 0)
+				{
+					free(av);
+					return (NULL);
+				}
+				break;
 			}
 		}
 	}
